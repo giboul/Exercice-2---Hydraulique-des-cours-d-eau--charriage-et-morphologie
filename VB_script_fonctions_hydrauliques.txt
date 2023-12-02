@@ -1,0 +1,188 @@
+
+Option Explicit
+
+
+Function BAPRdeh(Sec As Range, ByVal h As Double, Quoi As Integer) As Double
+
+'
+' Cette routine calcule la surface A, le miroir B, le périmètre mouillé P et le rayon
+' hydraulique d'une section quelconque, sans toit!.
+' sec contient 2 colonnes : x et z des points du profil sans "surplomb"!
+' Quoi permet de choisir le paramètre retourné par la fonction
+'   Quoi = 1 : B (miroir)
+'        = 2 : A (surface mouillée)
+'        = 3 : P (périmètre mouillé)
+'        = 4 : R (rayon hydraulique)
+'
+'       Dubois Jérôme, LCH - EPFL, 24.09.1996
+
+
+Dim i As Long, PointDeb As Long
+Dim zmin As Double, tmp As Double, A As Double, B As Double, P As Double
+zmin = 1E+20
+PointDeb = 0
+A = 0
+B = 0
+P = 0
+
+' test sur la hauteur d'eau
+If h <= 0 Then
+    BAPRdeh = 0
+    Exit Function
+End If
+
+'recherche du points bas de la section
+For i = 1 To Sec.Rows.Count
+    If Sec.Cells(i, 2).Value < zmin Then zmin = Sec.Cells(i, 2).Value
+Next i
+
+Do
+    ' recherche du premier point sous l'eau
+    Do
+        PointDeb = PointDeb + 1
+        If PointDeb > Sec.Rows.Count Then Exit Do   ' le niv. d'eau est sous la sect.
+    Loop Until h + zmin > Sec.Cells(PointDeb, 2).Value And PointDeb <= Sec.Rows.Count
+    If PointDeb >= Sec.Rows.Count Then Exit Do
+    
+    ' calcul du 1er triangle
+    If PointDeb > 1 Then
+        tmp = (Sec.Cells(PointDeb, 1).Value - Sec.Cells(PointDeb - 1, 1)) * (h + zmin - Sec.Cells(PointDeb, 2)) / (Sec.Cells(PointDeb - 1, 2) - Sec.Cells(PointDeb, 2))
+        B = B + tmp
+        A = A + 0.5 * tmp * (h + zmin - Sec.Cells(PointDeb, 2))
+        P = P + Sqr(tmp ^ 2 + (h + zmin - Sec.Cells(PointDeb, 2).Value) ^ 2)
+    End If
+    If PointDeb >= Sec.Rows.Count Then Exit Do
+
+    ' calcul des trapèzes
+    Do While PointDeb + 1 <= Sec.Rows.Count
+        If h + zmin < Sec.Cells(PointDeb + 1, 2).Value Then Exit Do
+        PointDeb = PointDeb + 1
+        B = B + Sec.Cells(PointDeb, 1).Value - Sec.Cells(PointDeb - 1, 1).Value
+        A = A + 0.5 * (Sec.Cells(PointDeb, 1).Value - Sec.Cells(PointDeb - 1, 1).Value) * (2 * (h + zmin) - Sec.Cells(PointDeb, 2).Value - Sec.Cells(PointDeb - 1, 2).Value)
+        P = P + Sqr((Sec.Cells(PointDeb, 1).Value - Sec.Cells(PointDeb - 1, 1).Value) ^ 2 + (Sec.Cells(PointDeb, 2).Value - Sec.Cells(PointDeb - 1, 2).Value) ^ 2)
+    Loop
+    
+    If PointDeb + 1 > Sec.Rows.Count Then Exit Do ' fin de la sect.
+
+    ' calcul du dernier triangle
+    PointDeb = PointDeb + 1
+    tmp = (Sec.Cells(PointDeb, 1).Value - Sec.Cells(PointDeb - 1, 1).Value) * (h + zmin - Sec.Cells(PointDeb - 1, 2).Value) / (Sec.Cells(PointDeb, 2).Value - Sec.Cells(PointDeb - 1, 2).Value)
+    B = B + tmp
+    A = A + tmp * (h + zmin - Sec.Cells(PointDeb - 1, 2).Value) * 0.5
+    P = P + Sqr(tmp ^ 2 + (h + zmin - Sec.Cells(PointDeb - 1, 2).Value) ^ 2)
+    
+Loop Until PointDeb >= Sec.Rows.Count
+
+Select Case Quoi
+    Case 1  'miroir B
+        BAPRdeh = B
+    Case 2  'surface mouillée A
+        BAPRdeh = A
+    Case 3  'périmètre mouillé P
+        BAPRdeh = P
+    Case 4  'rayon hydraulique Rh
+        BAPRdeh = A / P
+    Case Else
+        BAPRdeh = -9999
+End Select
+
+
+End Function
+
+
+Function hc(Sec As Range, Q As Double) As Double
+
+'hauteur critique d'une section quelconque
+'méthode de bissectrice
+'
+'       Dubois Jérôme 24.09.1996 LCH-EPFL
+
+Dim h1 As Double, h2 As Double, h3 As Double
+Dim fdeh1 As Double, fdeh2 As Double, fdeh3 As Double
+Dim comp As Long
+
+Const Prec As Double = 0.000001
+Const Racg As Double = 3.132092  'Sqr(9.81)
+
+h2 = 0.0001 'valeur initiale
+fdeh2 = BAPRdeh(Sec, h2, 2) ^ (3 / 2) * BAPRdeh(Sec, h2, 1) ^ (-0.5) - Q / Racg
+comp = 0
+Do
+    comp = comp + 1
+    If comp > 1000 Then
+        hc = -999
+        Exit Function
+    End If
+    h1 = h2
+    fdeh1 = fdeh2
+    h2 = h1 + 0.5
+    fdeh2 = BAPRdeh(Sec, h2, 2) ^ (3 / 2) * BAPRdeh(Sec, h2, 1) ^ (-0.5) - Q / Racg
+Loop Until fdeh1 * fdeh2 < 0
+
+Do
+    h3 = (h1 * fdeh2 - h2 * fdeh1) / (fdeh2 - fdeh1)
+    fdeh3 = BAPRdeh(Sec, h3, 2) ^ (3 / 2) * BAPRdeh(Sec, h3, 1) ^ (-0.5) - Q / Racg
+    If fdeh1 * fdeh3 < 0 Then
+        h2 = h3
+        fdeh2 = fdeh3
+    Else
+        h1 = h3
+        fdeh1 = fdeh3
+    End If
+Loop Until Abs(fdeh3) < Prec
+
+hc = h3
+
+End Function
+
+Function hn(Sec As Range, K As Double, J0 As Double, Q As Double) As Double
+'
+'hauteur normale d'une section trapézoïdale
+'méthode de la bissectrice
+'
+'       Jérôme Dubois, LCH-EPFL, 24.09.1996
+
+Const Prec = 0.000001
+
+Dim h1 As Double, h2 As Double, h3 As Double
+Dim fdeh1 As Double, fdeh2 As Double, fdeh3 As Double
+Dim comp As Long
+
+'tests
+If Q <= 0 Or J0 <= 0 Then
+    hn = -9999
+    Exit Function
+End If
+
+h2 = 0.0001 'valeur initiale
+fdeh2 = BAPRdeh(Sec, h2, 2) * BAPRdeh(Sec, h2, 4) ^ (2 / 3) - Q / K / J0 ^ 0.5
+
+comp = 0
+Do
+    comp = comp + 1
+    If comp > 1000 Then
+        hn = -9999
+        Exit Function
+    End If
+    h1 = h2
+    fdeh1 = fdeh2
+    h2 = h1 + 0.5
+    fdeh2 = BAPRdeh(Sec, h2, 2) * BAPRdeh(Sec, h2, 4) ^ (2 / 3) - Q / K / J0 ^ 0.5
+Loop Until fdeh1 * fdeh2 < 0
+
+Do
+    h3 = (h1 * fdeh2 - h2 * fdeh1) / (fdeh2 - fdeh1)
+    fdeh3 = BAPRdeh(Sec, h3, 2) * BAPRdeh(Sec, h3, 4) ^ (2 / 3) - Q / K / J0 ^ 0.5
+    If fdeh1 * fdeh3 < 0 Then
+        h2 = h3
+        fdeh2 = fdeh3
+    Else
+        h1 = h3
+        fdeh1 = fdeh3
+    End If
+Loop Until Abs(fdeh3) < Prec
+
+hn = h3
+
+End Function
+
