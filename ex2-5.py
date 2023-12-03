@@ -111,6 +111,7 @@ for profile, K, Js in zip(PROFILES, GMS, SLOPES):
         sections.append(section)
 plt.close("all")
 
+# Diagrammes de Shields
 colors = plt.rcParams['axes.prop_cycle'].by_key()['color'][1:]
 for profile, Js in zip(PROFILES, SLOPES):
 
@@ -118,7 +119,6 @@ for profile, Js in zip(PROFILES, SLOPES):
     SD = ShieldsDiagram(figsize=(10, 4), plot_kw=dict(label="Limite du charriage"))
 
     for k, section, c in zip(transformdict.keys(), sections, colors):
-        # Diagramme Shields
         section.data = section.data.query("300 <= Q <= 1600")
         for dv in diam:
             shear = rho*g*section.S/section.P*Js
