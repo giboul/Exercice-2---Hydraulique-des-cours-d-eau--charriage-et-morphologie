@@ -1,7 +1,12 @@
 import numpy as np
 import pandas as pd
 from scipy.interpolate import interp1d
-from hydrogibs.fluvial.shields import shields_diagram
+from hydrogibs.fluvial.shields import (
+    ShieldsDiagram,
+    adimensional_diameter,
+    adimensional_shear,
+    reynolds
+)
 from hydrogibs.fluvial.canal import Section
 from matplotlib import pyplot as plt
 plt.style.use('ggplot')
@@ -25,13 +30,11 @@ rho_s, rho, g, nu = constants.Valeur.to_numpy().T
 # Granulométrie
 grains = pd.read_excel(INPUT_FILE, sheet_name="Granulométrie")
 granulometry = interp1d(grains["Tamisats [%]"], grains["Diamètre des grains [cm]"]/100)
-diam = {f"$d_{{{dk}}}$": dv for dk, dv in zip((16, 50, 90), granulometry((16, 50, 90)))}
+diam = {f"d_{{{dk}}}": dv for dk, dv in zip((16, 50, 90), granulometry((16, 50, 90)))}
 
-fig = plt.figure(figsize=(12, 4.5))
-
-axes=None
-frontier = True
+# Shields Diagram
 lw = 6
+SD = ShieldsDiagram(figsize=(12, 4.5))
 for profile, K, slope in zip(PROFILES, GMS, SLOPES):
 
     # read profile
@@ -42,23 +45,21 @@ for profile, K, slope in zip(PROFILES, GMS, SLOPES):
         df['Dist. cumulée [m]'],
         df['Altitude [m s.m.]'],
     ).compute_GMS_data(K, slope).compute_critical_data()
-    section = section.data.query("300 <= Q <= 1600")
+    section = section.data.query("300 <= Q <= 1600").sort_values("h")
+    shear = rho*g*section.S/section.P*slope
+
     # Diagramme de Shields
-    _, axes = shields_diagram(diam.values(),
-                              section.S/section.P,
-                              slope,
-                              diameter_labels=diam.keys(),
-                              lw=lw,
-                              axes=axes,
-                              plot_frontier=frontier,
-                              show=False)
-    if frontier is True:
-        frontier = False
+    for dk, dv in diam.items():
+        r = reynolds(np.sqrt(shear/rho), dv)
+        s = adimensional_shear(shear, dv, rho_s)
+        d = adimensional_diameter(np.full_like(shear, fill_value=dv), rho_s)
+        SD.plot(s, r, d, lw=lw, label=f"$dk={dv*100:.1f}$ cm")
     lw -= 3
 
-axes[0].set_zorder(axes[1].get_zorder()+1)
-axes[0].legend(ncols=2, title=f"{'Rhone 18.947':^15} {'Rhone 18.846':^15}", loc=(0.65, 0.67))
-fig.savefig("figures/Q2/shields.pdf", bbox_inches='tight')
+SD.axShields.set_zorder(SD.axVanRijn.get_zorder()+1)
+SD.axShields.legend(ncols=2, title=f"{'Rhone 18.947':^15} {'Rhone 18.846':^15}", loc=(0.65, 0.67))
+SD.figure.tight_layout()
+SD.figure.savefig("figures/Q2/shields.pdf", bbox_inches='tight')
 plt.show()
 
 

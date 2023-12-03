@@ -28,7 +28,7 @@ for profile, K, Js in zip(PROFILES, GMS, SLOPES):
 
     # section.rawdata.to_csv(f'out/raw_{sheet}.csv', index=False)
     # section.data.to_csv(f'out/complete_{sheet}.csv', index=False)
-    fig = plt.figure(figsize=(9, 4.5))
+    fig = plt.figure(figsize=(9, 5))
     fig, (ax1, ax2) = section.plot(h=6.35, show=False, fig=fig)
 
     # Pour faire plus joli
