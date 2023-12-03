@@ -53,7 +53,7 @@ for profile, K, slope in zip(PROFILES, GMS, SLOPES):
         r = reynolds(np.sqrt(shear/rho), dv)
         s = adimensional_shear(shear, dv, rho_s)
         d = adimensional_diameter(np.full_like(shear, fill_value=dv), rho_s)
-        SD.plot(s, r, d, lw=lw, label=f"$dk={dv*100:.1f}$ cm")
+        SD.plot(s, r, d, lw=lw, label=f"${dk}={dv*100:.1f}$ cm")
     lw -= 3
 
 SD.axShields.set_zorder(SD.axVanRijn.get_zorder()+1)
