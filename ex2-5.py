@@ -9,7 +9,6 @@ from scipy.interpolate import interp1d
 import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
-from cycler import cycler
 plt.style.use('ggplot')
 
 
@@ -83,12 +82,12 @@ for profile, K, Js in zip(PROFILES, GMS, SLOPES):
 
     for k, transform in transformdict.items():
         # Section transofrmée
-        # Initialize section without hydraulic data
-        section = Section(_x, _z, process=False).preprocess()
-        x, z = section.data[["x", "z"]].to_numpy().T
         # Transform coordinates and compute hydraulic data
-        section.data.x, section.data.z = transform(section.x, section.z, dist=dist, start=start)
-        section = section.compute_geometry().compute_critical_data().compute_GMS_data(K, Js)
+        x, z = transform(_x, _z, dist=dist, start=start)
+        section = Section(x, z)
+        section = section.compute_critical_data().compute_GMS_data(K, Js)
+        # Re-set rawdata for comparison
+        section.rawdata = pd.DataFrame.from_dict(dict(x=_x, z=_z))
         # Profile figure
         fig, (ax1, ax2) = section.plot(show=False)
         fig.set_size_inches(6, 3)
@@ -121,7 +120,9 @@ for profile, Js in zip(PROFILES, SLOPES):
     for k, section, c in zip(transformdict.keys(), sections, colors):
         section.data = section.data.query("300 <= Q <= 1600")
         for dv in diam:
-            shear = rho*g*section.S/section.P*Js
+            Rh = section.S/section.P
+            Rh = np.array([Rh.min(), Rh.max()])
+            shear = rho*g*Rh*Js
             s = adimensional_shear(shear, dv, rho_s)
             d = adimensional_diameter(dv, rho_s)
             r = reynolds(np.sqrt(shear/rho), dv)
