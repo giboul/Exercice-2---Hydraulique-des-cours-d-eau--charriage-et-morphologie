@@ -84,8 +84,7 @@ for profile, K, Js in zip(PROFILES, GMS, SLOPES):
         # Profil transformé
         # Transform coordinates and compute hydraulic data
         x, z = transform(_x, _z, dist=dist, start=start)
-        section = Profile(x, z)
-        section = section.compute_critical_data().compute_GMS_data(K, Js)
+        section = Profile(x, z, K, Js)
         # Re-set rawdata for comparison
         section.rawdata = pd.DataFrame.from_dict(dict(x=_x, z=_z))
         # Profile figure

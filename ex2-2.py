@@ -75,7 +75,9 @@ for profile, K, slope in zip(PROFILES, GMS, SLOPES):
     section = Profile(
         df['Dist. cumulée [m]'],
         df['Altitude [m s.m.]'],
-    ).compute_GMS_data(K, slope).compute_critical_data()
+        K,
+        slope
+    )
 
     fig = plt.figure(figsize=(9, 4))
 
