@@ -88,7 +88,7 @@ for profile, K, Js in zip(PROFILES, GMS, SLOPES):
         # Re-set rawdata for comparison
         section.rawdata = pd.DataFrame.from_dict(dict(x=_x, z=_z))
         # Profile figure
-        fig, (ax1, ax2) = section.plot(show=False)
+        fig, (ax1, ax2) = section.plot()
         fig.set_size_inches(6, 3)
         ax2.dataLim.x0 = 300
         ax2.dataLim.x1 = 1600
@@ -107,7 +107,7 @@ for profile, K, Js in zip(PROFILES, GMS, SLOPES):
         fig.show()
 
         sections.append(section)
-plt.close("all")
+# plt.close("all")
 
 # Diagrammes de Shields
 colors = plt.rcParams['axes.prop_cycle'].by_key()['color'][1:]
