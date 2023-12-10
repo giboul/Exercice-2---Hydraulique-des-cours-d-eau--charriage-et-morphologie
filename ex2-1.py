@@ -56,7 +56,7 @@ for profile, K, Js in zip(PROFILES, GMS, SLOPES):
         ax1.get_legend().remove()
 
     plt.tight_layout()
-    plt.savefig(f"figures/Q1/{profile}_diagram.pdf", bbox_inches='tight')
+    plt.savefig(f"figures/Q1/{profilename}_diagram.pdf", bbox_inches='tight')
     plt.show()
 
     # Interpolation de données plus précises (modèle trapézoïdal)

@@ -89,6 +89,10 @@ for profile, K, Js in zip(PROFILES, GMS, SLOPES):
         section.rawdata = pd.DataFrame.from_dict(dict(x=_x, z=_z))
         # Profile figure
         fig, (ax1, ax2) = section.plot()
+        ax1.plot(df['Dist. cumulée [m]'],
+                    df['Altitude [m s.m.]'],
+                    '-o', ms=8, c='gray', zorder=0,
+                    lw=3, label="Profil complet")
         fig.set_size_inches(6, 3)
         ax2.dataLim.x0 = 300
         ax2.dataLim.x1 = 1600
