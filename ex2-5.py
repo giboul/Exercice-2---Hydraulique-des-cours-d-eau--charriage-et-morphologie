@@ -1,4 +1,4 @@
-from hydrogibs.fluvial.canal import Section
+from hydrogibs.fluvial.profile import Profile
 from hydrogibs.fluvial.shields import (
     ShieldsDiagram,
     adimensional_diameter,
@@ -81,10 +81,10 @@ for profile, K, Js in zip(PROFILES, GMS, SLOPES):
     _x, _z = df[['Dist. cumulée [m]', 'Altitude [m s.m.]']].to_numpy().T
 
     for k, transform in transformdict.items():
-        # Section transofrmée
+        # Profil transformé
         # Transform coordinates and compute hydraulic data
         x, z = transform(_x, _z, dist=dist, start=start)
-        section = Section(x, z)
+        section = Profile(x, z)
         section = section.compute_critical_data().compute_GMS_data(K, Js)
         # Re-set rawdata for comparison
         section.rawdata = pd.DataFrame.from_dict(dict(x=_x, z=_z))
@@ -118,7 +118,7 @@ for profile, Js in zip(PROFILES, SLOPES):
     SD = ShieldsDiagram(figsize=(10, 4), plot_kw=dict(label="Limite du charriage"))
 
     for k, section, c in zip(transformdict.keys(), sections, colors):
-        section.data = section.data.query("300 <= Q <= 1600")
+        section.df = section.df.query("300 <= Q <= 1600")
         for dv in diam:
             Rh = section.S/section.P
             Rh = np.array([Rh.min(), Rh.max()])

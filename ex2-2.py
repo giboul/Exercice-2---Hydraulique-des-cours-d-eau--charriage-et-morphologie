@@ -7,7 +7,7 @@ from hydrogibs.fluvial.shields import (
     adimensional_shear,
     reynolds
 )
-from hydrogibs.fluvial.canal import Section
+from hydrogibs.fluvial.profile import Profile
 from matplotlib import pyplot as plt
 plt.style.use('ggplot')
 colors = plt.rcParams["axes.prop_cycle"].by_key()['color']
@@ -41,11 +41,13 @@ for profile, K, slope in zip(PROFILES, GMS, SLOPES):
     df = pd.read_excel(INPUT_FILE, sheet_name=profile,
                        usecols=USECOLS, dtype=float)
     # Initialisation de l'objet
-    section = Section(
+    section = Profile(
         df['Dist. cumulée [m]'],
         df['Altitude [m s.m.]'],
-    ).compute_GMS_data(K, slope).compute_critical_data()
-    section = section.data.query("300 <= Q <= 1600").sort_values("h")
+        K,
+        slope
+    )
+    section = section.df.query("300 <= Q <= 1600").sort_values("h")
     shear = rho*g*section.S/section.P*slope
 
     # Diagramme de Shields
@@ -70,7 +72,7 @@ for profile, K, slope in zip(PROFILES, GMS, SLOPES):
     df = pd.read_excel(INPUT_FILE, sheet_name=profile,
                        usecols=USECOLS, dtype=float)
     # Initialisation de l'objet
-    section = Section(
+    section = Profile(
         df['Dist. cumulée [m]'],
         df['Altitude [m s.m.]'],
     ).compute_GMS_data(K, slope).compute_critical_data()
@@ -79,7 +81,7 @@ for profile, K, slope in zip(PROFILES, GMS, SLOPES):
 
     plt.plot(section.rawdata.x, section.rawdata.z, '-ok', mfc='w', mew=2, label='Lit')
 
-    data_section = section.data.query("Q <= 1600")
+    data_section = section.df.query("Q <= 1600")
     z1600 = data_section.h.max() + data_section.z.min()
     h = np.maximum(0, z1600 - data_section.z)
     tp = 1000*9.81*h*slope
