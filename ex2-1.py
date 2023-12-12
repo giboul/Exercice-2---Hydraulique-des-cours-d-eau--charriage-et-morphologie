@@ -28,29 +28,28 @@ for profile, K, Js in zip(PROFILES, GMS, SLOPES):
         K, Js
     )
 
-    # profile.rawdata.to_csv(f'out/raw_{sheet}.csv', index=False)
-    # profile.data.to_csv(f'out/complete_{sheet}.csv', index=False)
     fig = plt.figure(figsize=(9, 5))
     fig, (ax1, ax2) = profile.plot(fig=fig)
     ax1.plot(df['Dist. cumulée [m]'],
-                df['Altitude [m s.m.]'],
-                '-o', ms=8, c='gray', zorder=0,
-                lw=3, label="Profil complet")
+             df['Altitude [m s.m.]'],
+             '-o', ms=8, c='gray', zorder=0,
+             lw=3, label="Profil complet")
     # showing an example of a water depth
     zthres = 6.2 + profile.z.min()
     mask = profile.z <= zthres
-    ax1.fill_between(profile.x[mask], profile.z[mask], zthres, color='b', alpha=0.3)
+    ax1.fill_between(profile.x[mask], profile.z[mask], zthres,
+                     color='b', alpha=0.3, label="Exemple")
 
     # Pour faire plus joli
-    lit, pts, eau, *_ = ax1.get_children()
+    l1, l2 = ax1.get_lines()
     hc, he = ax2.get_lines()
     ax2.dataLim.x1 = 1600  # ~xlim
     ax2.autoscale_view()
     ax1.set_title(profilename, loc='left', alpha=0.8)  # nom de la profile
-    # légende
-    lines = (lit, pts, eau, he, hc)
+    # legend
+    lines = (l1, l2, he, hc)
     labels = [line.get_label() for line in lines]
-    if profile == 'Rhone18.846':
+    if profilename == 'Rhone18.846':
         ax1.legend(lines, labels, framealpha=0.8, ncols=2)
     else:
         ax1.get_legend().remove()

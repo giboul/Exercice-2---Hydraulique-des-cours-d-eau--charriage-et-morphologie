@@ -38,7 +38,7 @@ for profile, K, slope in zip(PROFILES, GMS, SLOPES):
         slope
     )
 
-    profiles.append(section.df.query('Q < 1600').sort_values('h'))
+    profiles.append(section.query('Q <= 1600').sort_values('h'))
 
 fig, ax = plt.subplots(figsize=(5, 3))
 for df, profile, K, slope in zip(profiles, PROFILES, GMS, SLOPES):

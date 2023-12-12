@@ -72,7 +72,7 @@ transformdict = dict(
 dist = 45  # Élargissement de 45 m
 start = 40  # Commence au 40e mètre
 first_it = True
-sections = []
+dfs = []
 # Diagrammes de profil
 for profile, K, Js in zip(PROFILES, GMS, SLOPES):
 
@@ -84,15 +84,12 @@ for profile, K, Js in zip(PROFILES, GMS, SLOPES):
         # Profil transformé
         # Transform coordinates and compute hydraulic data
         x, z = transform(_x, _z, dist=dist, start=start)
-        section = Profile(x, z, K, Js)
-        # Re-set rawdata for comparison
-        section.rawdata = pd.DataFrame.from_dict(dict(x=_x, z=_z))
+        df = Profile(x, z, K, Js)
         # Profile figure
-        fig, (ax1, ax2) = section.plot()
-        ax1.plot(df['Dist. cumulée [m]'],
-                    df['Altitude [m s.m.]'],
-                    '-o', ms=8, c='gray', zorder=0,
-                    lw=3, label="Profil complet")
+        fig, (ax1, ax2) = df.plot()
+        ax1.plot(_x, _z,
+                 '-o', ms=8, c='gray', zorder=0,
+                 lw=3, label="Profil complet")
         fig.set_size_inches(6, 3)
         ax2.dataLim.x0 = 300
         ax2.dataLim.x1 = 1600
@@ -110,7 +107,7 @@ for profile, K, Js in zip(PROFILES, GMS, SLOPES):
         fig.savefig(f"figures/Q5/profiles/{k}_{profile}.pdf", bbox_inches='tight')
         fig.show()
 
-        sections.append(section)
+        dfs.append(df)
 # plt.close("all")
 
 # Diagrammes de Shields
@@ -120,8 +117,8 @@ for profile, Js in zip(PROFILES, SLOPES):
     lw=10
     SD = ShieldsDiagram(figsize=(10, 4), plot_kw=dict(label="Limite du charriage"))
 
-    for k, section, c in zip(transformdict.keys(), sections, colors):
-        section.df = section.df.query("300 <= Q <= 1600")
+    for k, section, c in zip(transformdict.keys(), dfs, colors):
+        section = section.query("300 <= Q <= 1600")
         for dv in diam:
             Rh = section.S/section.P
             Rh = np.array([Rh.min(), Rh.max()])

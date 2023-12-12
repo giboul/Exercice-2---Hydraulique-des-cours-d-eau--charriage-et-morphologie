@@ -47,7 +47,7 @@ for profile, K, slope in zip(PROFILES, GMS, SLOPES):
         K,
         slope
     )
-    section = section.df.query("300 <= Q <= 1600").sort_values("h")
+    section = section.query("300 <= Q <= 1600").sort_values("h")
     shear = rho*g*section.S/section.P*slope
 
     # Diagramme de Shields
@@ -81,9 +81,10 @@ for profile, K, slope in zip(PROFILES, GMS, SLOPES):
 
     fig = plt.figure(figsize=(9, 4))
 
-    plt.plot(section.rawdata.x, section.rawdata.z, '-ok', mfc='w', mew=2, label='Lit')
+    plt.plot(df['Dist. cumulée [m]'], df['Altitude [m s.m.]'],
+             '-ok', mfc='w', mew=2, label='Lit')
 
-    data_section = section.df.query("Q <= 1600")
+    data_section = section.query("Q <= 1600")
     z1600 = data_section.h.max() + data_section.z.min()
     h = np.maximum(0, z1600 - data_section.z)
     tp = 1000*9.81*h*slope
