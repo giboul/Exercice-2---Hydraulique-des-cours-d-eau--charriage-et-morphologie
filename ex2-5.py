@@ -54,6 +54,8 @@ def elongate(x, z, dist, start=None):
 
 
 def linearize(x, z, dist, start):
+    x = x.copy()
+    z = z.copy()
     mask = x <= start
     zm = np.sort(z[mask])[::-1]
     z[mask] = zm
@@ -105,6 +107,8 @@ for profile, K, Js in zip(PROFILES, GMS, SLOPES):
             ax1.get_legend().remove()
             frontier = False
         fig.savefig(f"figures/Q5/profiles/{k}_{profile}.pdf", bbox_inches='tight')
+        ax1.set_title(k)
+        fig.tight_layout()
         fig.show()
 
         dfs.append(df)
