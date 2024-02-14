@@ -34,27 +34,29 @@ for profile, K, slope in zip(PROFILES, GMS, SLOPES):
     section = Profile(
         section['Dist. cumulée [m]'],
         section['Altitude [m s.m.]'],
-        K,
-        slope
+        K=K,
+        Js=slope
     )
 
-    profiles.append(section.query('Q <= 1600').sort_values('h'))
+    profiles.append(section)  # .query('Q <= 1600'))
 
 fig, ax = plt.subplots(figsize=(5, 3))
-for df, profile, K, slope in zip(profiles, PROFILES, GMS, SLOPES):
+for profile, profilename, slope in zip(profiles, PROFILES, SLOPES):
 
-    h = np.linspace(df.h.min(), df.h.max(), num=10000)
-    Q = section.interp_Q(h)
-
-    Qs = Q * smart_jaeggi(h, slope)
+    mask = profile.h > 0
+    h = profile.h[mask]
+    Q = profile.Q[mask]
+    J = profile.Js[mask]
+    Qs = Q * smart_jaeggi(h, J)
     Qs[Qs < 0] = 0
-    ax.plot(Q, Qs, '-.', label=profile)
+
+    ax.plot(Q, Qs, '-.', label=profilename)
 
 ax.set_xlabel('Q$_L$ [m$^3$/s]')
 ax.set_ylabel('Q$_S$ [m$^3$/s]')
 ax.legend()
-# ax.dataLim.x1 = 1600
-# ax.autoscale_view()
+ax.dataLim.x1 = 1600
+ax.autoscale_view()
 plt.tight_layout()
 plt.savefig("figures/Q3/smart.pdf", bbox_inches='tight')
 plt.show()

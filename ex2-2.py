@@ -44,8 +44,8 @@ for profile, K, slope in zip(PROFILES, GMS, SLOPES):
     section = Profile(
         df['Dist. cumulée [m]'],
         df['Altitude [m s.m.]'],
-        K,
-        slope
+        K=K,
+        Js=slope
     )
     section = section.query("300 <= Q <= 1600").sort_values("h")
     shear = rho*g*section.S/section.P*slope
@@ -75,8 +75,8 @@ for profile, K, slope in zip(PROFILES, GMS, SLOPES):
     section = Profile(
         df['Dist. cumulée [m]'],
         df['Altitude [m s.m.]'],
-        K,
-        slope
+        K=K,
+        Js=slope
     )
 
     fig = plt.figure(figsize=(9, 4))

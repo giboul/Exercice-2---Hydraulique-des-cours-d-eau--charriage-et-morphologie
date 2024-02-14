@@ -86,7 +86,7 @@ for profile, K, Js in zip(PROFILES, GMS, SLOPES):
         # Profil transformé
         # Transform coordinates and compute hydraulic data
         x, z = transform(_x, _z, dist=dist, start=start)
-        df = Profile(x, z, K, Js)
+        df = Profile(x, z, K=K, Js=Js)
         # Profile figure
         fig, (ax1, ax2) = df.plot()
         ax1.plot(_x, _z,

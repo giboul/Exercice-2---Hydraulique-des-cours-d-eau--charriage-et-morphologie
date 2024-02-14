@@ -25,7 +25,7 @@ for profile, K, Js in zip(PROFILES, GMS, SLOPES):
     profile = Profile(
         df['Dist. cumulée [m]'],
         df['Altitude [m s.m.]'],
-        K, Js
+        K=K, Js=Js
     )
 
     fig = plt.figure(figsize=(9, 5))
